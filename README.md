@@ -53,3 +53,13 @@ The workflow runs the `scripts/validation.py` script on every push or pull reque
 - Ensures consistency across all commits  
 - Provides immediate feedback if a file or folder is missing  
 - Demonstrates CI/CD integration for the RaceDay project  
+
+
+## Video Evidence
+
+The demonstration video for RaceDay Part 1 is **not stored in this repository** due to file size limitations.  
+The link to the video is provided:  
+- In this README (see below)  
+- In the submission portal  
+
+👉 [RaceDay Part 1 Video Link] 

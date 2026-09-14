@@ -12,3 +12,18 @@ This repository contains Part 1 of the Portfolio of Evidence, including:
 - SQL Database Script  
 - GitHub Actions CI/CD validation  
 - Demonstration video link  
+
+
+## User Roles
+
+### Organiser
+- Create, edit, and delete events  
+- Manage categories  
+- View enrolments  
+- Record and update results  
+
+### Participant
+- Register an account  
+- Browse events and categories  
+- Enrol in events  
+- View personal results and profile information  

@@ -1,0 +1,2 @@
+-- RaceDay Database Script
+-- This file will contain tables, constraints, seed data, and verification queries.

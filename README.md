@@ -26,4 +26,16 @@ This repository contains Part 1 of the Portfolio of Evidence, including:
 - Register an account  
 - Browse events and categories  
 - Enrol in events  
-- View personal results and profile information  
+- View personal results and profile information
+
+  ## Project Overview
+
+This repository contains Part 1 of the RaceDay Portfolio of Evidence.  
+It includes the following artefacts:
+
+- **Entity Relationship Diagram (ERD)** – logical structure of the database  
+- **API Endpoint Plan** – RESTful service endpoints for organisers and participants  
+- **SQL Database Script** – tables, constraints, seed data, and verification queries  
+- **GitHub Actions CI/CD** – workflow validation of repository structure  
+- **Demonstration Video** – explanation of design, ERD, API plan, SQL script, and CI/CD evidence  
+

@@ -39,3 +39,17 @@ It includes the following artefacts:
 - **GitHub Actions CI/CD** – workflow validation of repository structure  
 - **Demonstration Video** – explanation of design, ERD, API plan, SQL script, and CI/CD evidence  
 
+
+## CI/CD Validation
+
+This repository uses **GitHub Actions** to automatically validate the structure.  
+The workflow runs the `scripts/validation.py` script on every push or pull request to the `main` branch.  
+
+### What it checks:
+- Presence of required folders (`ERD/`, `API-Plan/`, `Database/`, `scripts/`)  
+- Presence of required files (`README.md`, ERD diagram, API plan, SQL script, validation script)  
+
+### Benefits:
+- Ensures consistency across all commits  
+- Provides immediate feedback if a file or folder is missing  
+- Demonstrates CI/CD integration for the RaceDay project  

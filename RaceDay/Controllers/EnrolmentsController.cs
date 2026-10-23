@@ -1,4 +1,6 @@
 ﻿
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RaceDay.Data;
@@ -8,11 +10,12 @@ namespace RaceDay.Controllers;
 
 // =======================================================
 // START: ENROLMENTS CONTROLLER
-// Purpose: Provides CRUD endpoints for event enrolments.
+// Purpose: Provides secure CRUD endpoints for enrolments.
 // =======================================================
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class EnrolmentsController : ControllerBase
 {
     private readonly RaceDayDbContext _context;
@@ -26,6 +29,7 @@ public class EnrolmentsController : ControllerBase
 
     // START: GET ALL ENROLMENTS
     [HttpGet]
+    [Authorize(Roles = "Organiser")]
     public async Task<ActionResult<IEnumerable<Enrolment>>> GetEnrolments()
     {
         return await _context.Enrolments
@@ -51,15 +55,104 @@ public class EnrolmentsController : ControllerBase
         if (enrolment == null)
             return NotFound();
 
+        var isOrganiser = User.IsInRole("Organiser");
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!isOrganiser &&
+            (!int.TryParse(userIdClaim, out var userId) ||
+             enrolment.ParticipantId != userId))
+        {
+            return Forbid();
+        }
+
         return Ok(enrolment);
     }
     // END: GET ENROLMENT BY ID
 
     // START: CREATE ENROLMENT
     [HttpPost]
-    public async Task<ActionResult<Enrolment>> CreateEnrolment(Enrolment enrolment)
+    [Authorize(Roles = "Participant")]
+    public async Task<ActionResult<Enrolment>> CreateEnrolment(
+        Enrolment enrolment)
     {
         enrolment.EnrolmentId = 0;
+
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
+
+        // The participant ID must come from the authenticated token.
+        enrolment.ParticipantId = userId;
+
+        var participantExists = await _context.Users.AnyAsync(
+            u => u.UserId == userId &&
+                 u.Role == "Participant" &&
+                 u.IsActive);
+
+        if (!participantExists)
+        {
+            return BadRequest(new
+            {
+                message = "The authenticated participant does not exist or is inactive."
+            });
+        }
+
+        var eventExists = await _context.Events
+            .AnyAsync(e => e.EventId == enrolment.EventId);
+
+        if (!eventExists)
+            return BadRequest(new { message = "The specified event does not exist." });
+
+        var categoryExists = await _context.Categories
+            .AnyAsync(c => c.CategoryId == enrolment.CategoryId);
+
+        if (!categoryExists)
+            return BadRequest(new { message = "The specified category does not exist." });
+
+        var duplicate = await _context.Enrolments.AnyAsync(
+            e => e.ParticipantId == userId &&
+                 e.EventId == enrolment.EventId);
+
+        if (duplicate)
+        {
+            return Conflict(new
+            {
+                message = "This participant is already enrolled in this event."
+            });
+        }
+
+        enrolment.EnrolmentDate = DateTime.UtcNow;
+
+        _context.Enrolments.Add(enrolment);
+        await _context.SaveChangesAsync();
+
+        return CreatedAtAction(
+            nameof(GetEnrolment),
+            new { id = enrolment.EnrolmentId },
+            enrolment);
+    }
+    // END: CREATE ENROLMENT
+
+    // START: UPDATE ENROLMENT
+    [HttpPut("{id:int}")]
+    [Authorize(Roles = "Organiser")]
+    public async Task<IActionResult> UpdateEnrolment(
+        int id,
+        Enrolment enrolment)
+    {
+        if (id != enrolment.EnrolmentId)
+        {
+            return BadRequest(new
+            {
+                message = "The URL ID does not match the enrolment ID."
+            });
+        }
+
+        var existing = await _context.Enrolments.FindAsync(id);
+
+        if (existing == null)
+            return NotFound();
 
         var participantExists = await _context.Users.AnyAsync(
             u => u.UserId == enrolment.ParticipantId &&
@@ -81,35 +174,17 @@ public class EnrolmentsController : ControllerBase
             return BadRequest(new { message = "The specified category does not exist." });
 
         var duplicate = await _context.Enrolments.AnyAsync(
-            e => e.ParticipantId == enrolment.ParticipantId &&
+            e => e.EnrolmentId != id &&
+                 e.ParticipantId == enrolment.ParticipantId &&
                  e.EventId == enrolment.EventId);
 
         if (duplicate)
-            return Conflict(new { message = "This participant is already enrolled in this event." });
-
-        enrolment.EnrolmentDate = DateTime.UtcNow;
-
-        _context.Enrolments.Add(enrolment);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(
-            nameof(GetEnrolment),
-            new { id = enrolment.EnrolmentId },
-            enrolment);
-    }
-    // END: CREATE ENROLMENT
-
-    // START: UPDATE ENROLMENT
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> UpdateEnrolment(int id, Enrolment enrolment)
-    {
-        if (id != enrolment.EnrolmentId)
-            return BadRequest(new { message = "The URL ID does not match the enrolment ID." });
-
-        var existing = await _context.Enrolments.FindAsync(id);
-
-        if (existing == null)
-            return NotFound();
+        {
+            return Conflict(new
+            {
+                message = "This participant is already enrolled in this event."
+            });
+        }
 
         existing.EventId = enrolment.EventId;
         existing.ParticipantId = enrolment.ParticipantId;
@@ -125,6 +200,7 @@ public class EnrolmentsController : ControllerBase
 
     // START: DELETE ENROLMENT
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Organiser")]
     public async Task<IActionResult> DeleteEnrolment(int id)
     {
         var enrolment = await _context.Enrolments.FindAsync(id);

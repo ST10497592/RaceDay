@@ -28,6 +28,13 @@ public class Category
 
     public int? MaximumAge { get; set; }
     // END: CATEGORY DETAILS
+
+
+
+    // START: EVENT RELATIONSHIPS
+    public ICollection<Event> Events { get; set; } = new List<Event>();
+    // END: EVENT RELATIONSHIPS
+
 }
 
 // =======================================================

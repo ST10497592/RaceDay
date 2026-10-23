@@ -25,6 +25,9 @@ jobs:
       - name: Build API
         run: dotnet build RaceDay/RaceDay.csproj --configuration Release --no-restore
 
+      - name: Run automated tests
+        run: dotnet test RaceDay.Tests/RaceDay.Tests.csproj --configuration Release
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

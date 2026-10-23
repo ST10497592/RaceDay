@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RaceDay.Data;
@@ -26,6 +27,7 @@ public class CategoriesController : ControllerBase
 
     // START: GET ALL CATEGORIES
     [HttpGet]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
     {
         return await _context.Categories
@@ -36,6 +38,7 @@ public class CategoriesController : ControllerBase
 
     // START: GET CATEGORY BY ID
     [HttpGet("{id:int}")]
+    [AllowAnonymous]
     public async Task<ActionResult<Category>> GetCategory(int id)
     {
         var category = await _context.Categories.FindAsync(id);
@@ -49,6 +52,7 @@ public class CategoriesController : ControllerBase
 
     // START: CREATE CATEGORY
     [HttpPost]
+    [Authorize(Roles = "Organiser")]
     public async Task<ActionResult<Category>> CreateCategory(Category category)
     {
         category.CategoryId = 0;
@@ -76,10 +80,16 @@ public class CategoriesController : ControllerBase
 
     // START: UPDATE CATEGORY
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Organiser")]
     public async Task<IActionResult> UpdateCategory(int id, Category category)
     {
         if (id != category.CategoryId)
-            return BadRequest(new { message = "The ID in the URL does not match the category ID." });
+        {
+            return BadRequest(new
+            {
+                message = "The ID in the URL does not match the category ID."
+            });
+        }
 
         var existingCategory = await _context.Categories.FindAsync(id);
 
@@ -109,6 +119,7 @@ public class CategoriesController : ControllerBase
 
     // START: DELETE CATEGORY
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Organiser")]
     public async Task<IActionResult> DeleteCategory(int id)
     {
         var category = await _context.Categories.FindAsync(id);

@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RaceDay.Data;
@@ -26,6 +27,7 @@ public class EventsController : ControllerBase
 
     // START: GET ALL EVENTS
     [HttpGet]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<Event>>> GetEvents()
     {
         return await _context.Events
@@ -37,6 +39,7 @@ public class EventsController : ControllerBase
 
     // START: GET EVENT BY ID
     [HttpGet("{id:int}")]
+    [AllowAnonymous]
     public async Task<ActionResult<Event>> GetEvent(int id)
     {
         var raceEvent = await _context.Events
@@ -53,15 +56,23 @@ public class EventsController : ControllerBase
 
     // START: CREATE EVENT
     [HttpPost]
+    [Authorize(Roles = "Organiser")]
     public async Task<ActionResult<Event>> CreateEvent(Event raceEvent)
     {
         raceEvent.EventId = 0;
 
         var organiserExists = await _context.Users
-            .AnyAsync(u => u.UserId == raceEvent.OrganiserId);
+            .AnyAsync(u => u.UserId == raceEvent.OrganiserId
+                        && u.Role == "Organiser"
+                        && u.IsActive);
 
         if (!organiserExists)
-            return BadRequest(new { message = "The specified organiser does not exist." });
+        {
+            return BadRequest(new
+            {
+                message = "The specified active organiser does not exist."
+            });
+        }
 
         var categoryIds = raceEvent.Categories
             .Select(c => c.CategoryId)
@@ -73,7 +84,12 @@ public class EventsController : ControllerBase
             .ToListAsync();
 
         if (categories.Count != categoryIds.Count)
-            return BadRequest(new { message = "One or more category IDs are invalid." });
+        {
+            return BadRequest(new
+            {
+                message = "One or more category IDs are invalid."
+            });
+        }
 
         raceEvent.Categories = categories;
         _context.Events.Add(raceEvent);
@@ -89,10 +105,16 @@ public class EventsController : ControllerBase
 
     // START: UPDATE EVENT
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Organiser")]
     public async Task<IActionResult> UpdateEvent(int id, Event raceEvent)
     {
         if (id != raceEvent.EventId)
-            return BadRequest(new { message = "The URL ID does not match the event ID." });
+        {
+            return BadRequest(new
+            {
+                message = "The URL ID does not match the event ID."
+            });
+        }
 
         var existingEvent = await _context.Events
             .Include(e => e.Categories)
@@ -102,10 +124,17 @@ public class EventsController : ControllerBase
             return NotFound();
 
         var organiserExists = await _context.Users
-            .AnyAsync(u => u.UserId == raceEvent.OrganiserId);
+            .AnyAsync(u => u.UserId == raceEvent.OrganiserId
+                        && u.Role == "Organiser"
+                        && u.IsActive);
 
         if (!organiserExists)
-            return BadRequest(new { message = "The specified organiser does not exist." });
+        {
+            return BadRequest(new
+            {
+                message = "The specified active organiser does not exist."
+            });
+        }
 
         var categoryIds = raceEvent.Categories
             .Select(c => c.CategoryId)
@@ -117,7 +146,12 @@ public class EventsController : ControllerBase
             .ToListAsync();
 
         if (categories.Count != categoryIds.Count)
-            return BadRequest(new { message = "One or more category IDs are invalid." });
+        {
+            return BadRequest(new
+            {
+                message = "One or more category IDs are invalid."
+            });
+        }
 
         existingEvent.OrganiserId = raceEvent.OrganiserId;
         existingEvent.EventName = raceEvent.EventName;
@@ -140,6 +174,7 @@ public class EventsController : ControllerBase
 
     // START: DELETE EVENT
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Organiser")]
     public async Task<IActionResult> DeleteEvent(int id)
     {
         var raceEvent = await _context.Events.FindAsync(id);

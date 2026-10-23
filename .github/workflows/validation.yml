@@ -2,22 +2,33 @@ name: Repository Validation
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   validate:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
 
-    - name: Run validation script
-      run: python scripts/validation.py
+      - name: Restore dependencies
+        run: dotnet restore RaceDay/RaceDay.csproj
+
+      - name: Build API
+        run: dotnet build RaceDay/RaceDay.csproj --configuration Release --no-restore
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Run validation script
+        run: python scripts/validation.py

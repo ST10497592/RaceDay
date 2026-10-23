@@ -1,6 +1,8 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -31,6 +33,7 @@ public class AuthController : ControllerBase
     }
 
     // START: REGISTER
+    [AllowAnonymous]
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
@@ -38,7 +41,10 @@ public class AuthController : ControllerBase
 
         if (await _context.Users.AnyAsync(u => u.Email == email))
         {
-            return Conflict(new { message = "Cette adresse e-mail est déjà utilisée." });
+            return Conflict(new
+            {
+                message = "This email address is already registered."
+            });
         }
 
         var user = new User
@@ -62,7 +68,7 @@ public class AuthController : ControllerBase
 
         return StatusCode(201, new
         {
-            message = "Compte créé avec succès.",
+            message = "Account created successfully.",
             user.UserId,
             user.FirstName,
             user.LastName,
@@ -73,6 +79,7 @@ public class AuthController : ControllerBase
     // END: REGISTER
 
     // START: LOGIN
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequest request)
     {
@@ -85,7 +92,7 @@ public class AuthController : ControllerBase
         {
             return Unauthorized(new
             {
-                message = "Adresse e-mail ou mot de passe incorrect."
+                message = "Invalid email address or password."
             });
         }
 
@@ -99,7 +106,7 @@ public class AuthController : ControllerBase
         {
             return Unauthorized(new
             {
-                message = "Adresse e-mail ou mot de passe incorrect."
+                message = "Invalid email address or password."
             });
         }
 

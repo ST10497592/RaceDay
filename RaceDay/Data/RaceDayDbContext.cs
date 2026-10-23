@@ -26,6 +26,8 @@ public class RaceDayDbContext : DbContext
     public DbSet<Event> Events => Set<Event>();
 
     public DbSet<Enrolment> Enrolments => Set<Enrolment>();
+
+    public DbSet<Result> Results => Set<Result>();
     // END: DATABASE SETS
 }
 

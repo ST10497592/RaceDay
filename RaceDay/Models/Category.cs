@@ -1,8 +1,35 @@
-﻿using System;
+﻿
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-public class Class1
+namespace RaceDay.Models;
+
+// =======================================================
+// START: CATEGORY ENTITY
+// Purpose: Represents a category for a race event.
+// =======================================================
+
+[Table("Categories")]
+public class Category
 {
-	public Class1()
-	{
-	}
+    // START: PRIMARY KEY
+    [Key]
+    public int CategoryId { get; set; }
+    // END: PRIMARY KEY
+
+    // START: CATEGORY DETAILS
+    [Required]
+    [MaxLength(100)]
+    public string CategoryName { get; set; } = string.Empty;
+
+    public string? Description { get; set; }
+
+    public int? MinimumAge { get; set; }
+
+    public int? MaximumAge { get; set; }
+    // END: CATEGORY DETAILS
 }
+
+// =======================================================
+// END: CATEGORY ENTITY
+// =======================================================

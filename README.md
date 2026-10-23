@@ -1,65 +1,116 @@
-# RaceDay
+# RaceDay — Sports Event Management API
 
-RaceDay is a platform designed to modernize the management of sporting events such as running, walking, and cycling.  
-It replaces outdated paper-based systems with a digital solution that supports two distinct user roles:
+## Project Overview
 
-- **Organiser**: creates, edits, and deletes events; manages categories; views enrolments; records and updates results.  
-- **Participant**: registers an account; browses events and categories; enrols in events; views personal results and profile information.  
+RaceDay is a sports event management platform developed using
+ASP.NET Core Web API and .NET 8.
 
-This repository contains Part 1 of the Portfolio of Evidence, including:  
-- Entity Relationship Diagram (ERD)  
-- API Endpoint Plan  
-- SQL Database Script  
-- GitHub Actions CI/CD validation  
-- Demonstration video link  
+The application supports the management of sporting events,
+categories, participant enrolments and race results.
 
+## Technologies Used
 
-## User Roles
+- C#
+- ASP.NET Core Web API (.NET 8)
+- Entity Framework Core
+- SQL Server
+- JWT Bearer Authentication
+- xUnit automated tests
+- GitHub Actions
 
-### Organiser
-- Create, edit, and delete events  
-- Manage categories  
-- View enrolments  
-- Record and update results  
+## Main Features
 
-### Participant
-- Register an account  
-- Browse events and categories  
-- Enrol in events  
-- View personal results and profile information
+### Authentication and Authorisation
 
-  ## Project Overview
+- Participant registration and login.
+- Secure password hashing.
+- JWT-based authentication.
+- Role-based access control for organisers and participants.
 
-This repository contains Part 1 of the RaceDay Portfolio of Evidence.  
-It includes the following artefacts:
+### Event Management
 
-- **Entity Relationship Diagram (ERD)** – logical structure of the database  
-- **API Endpoint Plan** – RESTful service endpoints for organisers and participants  
-- **SQL Database Script** – tables, constraints, seed data, and verification queries  
-- **GitHub Actions CI/CD** – workflow validation of repository structure  
-- **Demonstration Video** – explanation of design, ERD, API plan, SQL script, and CI/CD evidence  
+- Retrieve all events and individual event details.
+- Create, update and delete events.
+- Validate event organisers and associated categories.
 
+### Category Management
 
-## CI/CD Validation
+- Retrieve, create, update and delete categories.
+- Restrict management operations to authorised organisers.
 
-This repository uses **GitHub Actions** to automatically validate the structure.  
-The workflow runs the `scripts/validation.py` script on every push or pull request to the `main` branch.  
+### Enrolment Management
 
-### What it checks:
-- Presence of required folders (`ERD/`, `API-Plan/`, `Database/`, `scripts/`)  
-- Presence of required files (`README.md`, ERD diagram, API plan, SQL script, validation script)  
+- Create and retrieve participant enrolments.
+- Apply authorisation rules to enrolment operations.
+- Validate related participants and events.
 
-### Benefits:
-- Ensures consistency across all commits  
-- Provides immediate feedback if a file or folder is missing  
-- Demonstrates CI/CD integration for the RaceDay project  
+### Results Management
 
+- Create, retrieve, update and delete race results.
+- Validate enrolments and prevent duplicate results.
 
-## Video Evidence
+## Database
 
-The demonstration video for RaceDay Part 1 is **not stored in this repository** due to file size limitations.  
-The link to the video is provided:  
-- In this README (see below)  
-- In the submission portal  
+The application uses SQL Server with Entity Framework Core.
 
-👉 [RaceDay Part 1 Video Link] 
+The repository includes the database script and the
+Entity Relationship Diagram in the `Database/` and `ERD/`
+directories.
+
+## Running the Application
+
+1. Install the .NET 8 SDK.
+2. Ensure SQL Server is available.
+3. Configure the database connection string in the
+   application's configuration.
+4. Configure the JWT settings using appropriate development
+   configuration or environment variables.
+5. Open a terminal in the repository root.
+6. Restore dependencies:
+
+   `dotnet restore RaceDay/RaceDay.csproj`
+
+7. Build the API:
+
+   `dotnet build RaceDay/RaceDay.csproj --configuration Release`
+
+8. Run the application:
+
+   `dotnet run --project RaceDay/RaceDay.csproj`
+
+## Automated Tests
+
+Run the test suite using:
+
+`dotnet test RaceDay.Tests/RaceDay.Tests.csproj --configuration Release`
+
+## Continuous Integration
+
+GitHub Actions automatically validates the project on pushes
+and pull requests targeting the `main` branch.
+
+The workflow restores dependencies, builds the API, runs
+automated tests and executes the repository validation script.
+
+See `.github/workflows/validation.yml`.
+
+## Repository Structure
+
+- `RaceDay/` — ASP.NET Core Web API.
+- `RaceDay.Tests/` — automated tests.
+- `Database/` — SQL database script.
+- `ERD/` — database relationship diagram.
+- `API-Plan/` — API endpoint planning documentation.
+- `scripts/` — validation scripts.
+- `docs/` — project documentation.
+- `screenshots/` — project evidence.
+
+## Demonstration Video
+
+Add the actual Part 2 demonstration video URL here before
+submitting the portfolio.
+
+## Project Status
+
+RaceDay Part 2 — API implementation, automated testing
+and continuous integration.

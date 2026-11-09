@@ -17,6 +17,7 @@ CREATE TABLE Users (
     Role VARCHAR(20) NOT NULL,
     PhoneNumber VARCHAR(20) NULL,
     DateOfBirth DATE NULL,
+    ProfilePictureUrl VARCHAR(500) NULL,
     CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
     IsActive BIT NOT NULL DEFAULT 1,
     CONSTRAINT CK_Users_Role CHECK (Role IN ('Organiser','Participant'))

@@ -1,13 +1,14 @@
-name: Repository Validation
+name: RaceDay CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, "part3-*"]
   pull_request:
     branches: [main]
 
 jobs:
-  validate:
+  build-and-test:
+    name: Build API, build MVC, run tests
     runs-on: ubuntu-latest
 
     steps:
@@ -20,13 +21,26 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Restore dependencies
-        run: dotnet restore RaceDay/RaceDay.csproj
+        run: |
+          dotnet restore RaceDay/RaceDay.csproj
+          dotnet restore RaceDay.Web/RaceDay.Web.csproj
+          dotnet restore RaceDay.Tests/RaceDay.Tests.csproj
 
       - name: Build API
         run: dotnet build RaceDay/RaceDay.csproj --configuration Release --no-restore
 
+      - name: Build MVC web application
+        run: dotnet build RaceDay.Web/RaceDay.Web.csproj --configuration Release --no-restore
+
       - name: Run automated tests
-        run: dotnet test RaceDay.Tests/RaceDay.Tests.csproj --configuration Release
+        run: dotnet test RaceDay.Tests/RaceDay.Tests.csproj --configuration Release --no-restore --logger "trx;LogFileName=test-results.trx"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: "**/test-results.trx"
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -35,3 +49,18 @@ jobs:
 
       - name: Run validation script
         run: python scripts/validation.py
+
+  docker-images:
+    name: Build Docker images
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build API image
+        run: docker build -f RaceDay/Dockerfile -t raceday-api:ci .
+
+      - name: Build MVC image
+        run: docker build -f RaceDay.Web/Dockerfile -t raceday-web:ci .

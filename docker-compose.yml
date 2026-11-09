@@ -1,0 +1,60 @@
+# =======================================================
+# RaceDay - full stack: SQL Server + Azurite (local Azure Blob
+# emulator) + API + MVC web app.
+#   docker compose up --build
+# Web app: http://localhost:8081      API Swagger: http://localhost:8080/swagger
+# =======================================================
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "RaceDay_Passw0rd!"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqldata:/var/opt/mssql
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    command: azurite-blob --blobHost 0.0.0.0 --skipApiVersionCheck --loose
+    ports:
+      - "10000:10000"
+    volumes:
+      - blobdata:/data
+
+  api:
+    build:
+      context: .
+      dockerfile: RaceDay/Dockerfile
+    depends_on:
+      - sqlserver
+      - azurite
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=RaceDayDB;User Id=sa;Password=RaceDay_Passw0rd!;TrustServerCertificate=True;"
+      Jwt__Key: "docker-demo-signing-key-change-me-0123456789-abcdef"
+      Registration__OrganiserCode: "RACEDAY-ORGANISER-2026"
+      AzureStorage__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
+      AzureStorage__PublicBaseUrl: "http://localhost:10000/devstoreaccount1"
+      Seed__DemoData: "true"
+      UseHttpsRedirection: "false"
+    ports:
+      - "8080:8080"
+
+  web:
+    build:
+      context: .
+      dockerfile: RaceDay.Web/Dockerfile
+    depends_on:
+      - api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ApiSettings__BaseUrl: "http://api:8080/"
+      UseHttpsRedirection: "false"
+    ports:
+      - "8081:8080"
+
+volumes:
+  sqldata:
+  blobdata:

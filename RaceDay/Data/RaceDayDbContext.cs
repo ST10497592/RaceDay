@@ -61,19 +61,29 @@ public class RaceDayDbContext : DbContext
         // (Users -> Events -> Enrolments and Users -> Enrolments). The Part 1 SQL script
         // uses NO ACTION for these keys, so the model does the same. The API already checks
         // for dependent rows before deleting.
-        var restrictedEntities = new[]
-        {
-            modelBuilder.Entity<Event>().Metadata,
-            modelBuilder.Entity<Enrolment>().Metadata
-        };
+        modelBuilder.Entity<Event>()
+            .HasOne(e => e.Organiser)
+            .WithMany()
+            .HasForeignKey(e => e.OrganiserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        foreach (var entityType in restrictedEntities)
-        {
-            foreach (var foreignKey in entityType.GetForeignKeys())
-            {
-                foreignKey.DeleteBehavior = DeleteBehavior.Restrict;
-            }
-        }
+        modelBuilder.Entity<Enrolment>()
+            .HasOne(e => e.Event)
+            .WithMany()
+            .HasForeignKey(e => e.EventId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Enrolment>()
+            .HasOne(e => e.Participant)
+            .WithMany()
+            .HasForeignKey(e => e.ParticipantId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Enrolment>()
+            .HasOne(e => e.Category)
+            .WithMany()
+            .HasForeignKey(e => e.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
         // END: DELETE BEHAVIOUR
 
         // START: UNIQUE CONSTRAINTS (match the Part 1 SQL script)

@@ -1,6 +1,6 @@
 # RaceDay — Sports Event Management Platform
 
-[![RaceDay CI](https://github.com/YOUR-USERNAME/YOUR-REPOSITORY/actions/workflows/validation.yml/badge.svg)](https://github.com/YOUR-USERNAME/YOUR-REPOSITORY/actions/workflows/validation.yml)
+[![RaceDay CI](https://github.com/ST10497592/RaceDay/actions/workflows/validation.yml/badge.svg)](https://github.com/ST10497592/RaceDay/actions/workflows/validation.yml)
 
 ## Project Overview
 
@@ -155,8 +155,10 @@ GitHub Actions (`.github/workflows/validation.yml`) runs on every push and pull 
 5. builds both **Docker images**.
 
 ### CI evidence
-Add a screenshot of the green workflow run here, for example
-`screenshots/ci-success.png`.
+The GitHub Actions workflow "RaceDay CI" builds the API and the MVC application, runs the
+automated tests and builds both Docker images. A successful run:
+
+![Successful RaceDay CI run](screenshots/ci-success.png)
 
 ## Repository Structure
 
@@ -171,7 +173,9 @@ Add a screenshot of the green workflow run here, for example
 
 ## Demonstration Video
 
-Video (Part 3 demonstration): https://youtu.be/REPLACE-WITH-YOUR-VIDEO-ID
+Video (Part 3 demonstration):
+
+
 
 The script for the video is in [`docs/Part3_Video_Script.md`](docs/Part3_Video_Script.md).
 

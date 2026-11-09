@@ -56,26 +56,6 @@ public class RaceDayDbContext : DbContext
                     j.ToTable("EventCategories");
                 });
 
-        // START: DELETE BEHAVIOUR
-        // SQL Server rejects tables that can be reached by several cascade paths
-        // (Users -> Events -> Enrolments and Users -> Enrolments). The Part 1 SQL script
-        // uses NO ACTION for these keys, so the model does the same. The API already checks
-        // for dependent rows before deleting.
-        var restrictedEntities = new[]
-        {
-            modelBuilder.Entity<Event>().Metadata,
-            modelBuilder.Entity<Enrolment>().Metadata
-        };
-
-        foreach (var entityType in restrictedEntities)
-        {
-            foreach (var foreignKey in entityType.GetForeignKeys())
-            {
-                foreignKey.DeleteBehavior = DeleteBehavior.Restrict;
-            }
-        }
-        // END: DELETE BEHAVIOUR
-
         // START: UNIQUE CONSTRAINTS (match the Part 1 SQL script)
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Email)

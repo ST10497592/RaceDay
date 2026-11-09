@@ -1,0 +1,68 @@
+@model ResultFormViewModel
+@{
+    ViewData["Title"] = Model.IsEdit ? "Edit result" : "Record result";
+}
+<div class="rd-page-header">
+    <div>
+        <div class="rd-eyebrow">@Model.EventName</div>
+        <h1>@(Model.IsEdit ? "Edit result" : "Record result")</h1>
+    </div>
+    <a class="btn btn-outline-secondary" asp-action="Manage" asp-route-id="@Model.EventId">Cancel</a>
+</div>
+
+<div class="rd-card rd-card-body" style="max-width:640px">
+    <form asp-action="@(Model.IsEdit ? "Edit" : "Add")" asp-route-id="@(Model.IsEdit ? Model.ResultId : Model.EventId)" asp-route-eventId="@(Model.IsEdit ? Model.EventId : (int?)null)" method="post" novalidate data-once>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="mb-3">
+            <label asp-for="EnrolmentId" class="form-label"></label>
+            @if (Model.IsEdit)
+            {
+                <input type="hidden" asp-for="EnrolmentId" />
+                <input class="form-control" value="@(Model.Candidates.Count > 0 ? Model.Candidates[0].ParticipantName + " - " + Model.Candidates[0].CategoryName : "")" disabled />
+            }
+            else
+            {
+                <select asp-for="EnrolmentId" class="form-select">
+                    <option value="">Select a participant...</option>
+                    @foreach (var c in Model.Candidates)
+                    {
+                        <option value="@c.EnrolmentId" selected="@(Model.EnrolmentId == c.EnrolmentId)">@c.ParticipantName - @c.CategoryName</option>
+                    }
+                </select>
+            }
+            <span asp-validation-for="EnrolmentId" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="ResultStatus" class="form-label"></label>
+            <select asp-for="ResultStatus" class="form-select">
+                <option value="Finished">Finished</option>
+                <option value="DidNotFinish">Did not finish</option>
+                <option value="Disqualified">Disqualified</option>
+            </select>
+            <span asp-validation-for="ResultStatus" class="text-danger"></span>
+        </div>
+
+        <div id="finisher-fields">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="FinishTime" class="form-label"></label>
+                    <input asp-for="FinishTime" class="form-control" placeholder="1:45:30" inputmode="numeric" autocomplete="off" />
+                    <span asp-validation-for="FinishTime" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Position" class="form-label"></label>
+                    <input asp-for="Position" type="number" min="1" class="form-control" />
+                    <span asp-validation-for="Position" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-accent mt-4">@(Model.IsEdit ? "Save changes" : "Save result")</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

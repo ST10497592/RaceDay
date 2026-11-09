@@ -1,6 +1,7 @@
 ﻿
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -14,6 +15,7 @@ using RaceDay.Models;
 namespace RaceDay.Controllers;
 
 // START: AUTHENTICATION CONTROLLER
+/// <summary>Registration, login and logout.</summary>
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
@@ -33,10 +35,50 @@ public class AuthController : ControllerBase
     }
 
     // START: REGISTER
+    /// <summary>Registers a new Participant or Organiser account.</summary>
+    /// <remarks>
+    /// Body: firstName, lastName, email, password, role (Participant or Organiser),
+    /// optional phoneNumber and dateOfBirth. Organiser accounts also need the
+    /// organiserCode configured on the server. Passwords are stored hashed.
+    /// Returns 201 Created, 400 invalid data, 403 wrong organiser code, 409 email already registered.
+    /// </remarks>
     [AllowAnonymous]
     [HttpPost("register")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
+        var role = string.IsNullOrWhiteSpace(request.Role)
+            ? "Participant"
+            : request.Role.Trim();
+
+        if (request.DateOfBirth.HasValue &&
+            request.DateOfBirth.Value.Date >= DateTime.UtcNow.Date)
+        {
+            ModelState.AddModelError(
+                nameof(request.DateOfBirth),
+                "Date of birth must be in the past.");
+
+            return ValidationProblem(ModelState);
+        }
+
+        // Organiser accounts can only be created with the server's access code.
+        if (role == "Organiser")
+        {
+            var expectedCode = _configuration["Registration:OrganiserCode"];
+
+            if (string.IsNullOrWhiteSpace(expectedCode) ||
+                !CodesMatch(expectedCode, request.OrganiserCode ?? string.Empty))
+            {
+                return StatusCode(403, new
+                {
+                    message = "A valid organiser access code is required to register as an Organiser."
+                });
+            }
+        }
+
         var email = request.Email.Trim().ToLowerInvariant();
 
         if (await _context.Users.AnyAsync(u => u.Email == email))
@@ -52,8 +94,9 @@ public class AuthController : ControllerBase
             FirstName = request.FirstName.Trim(),
             LastName = request.LastName.Trim(),
             Email = email,
-            Role = "Participant",
+            Role = role,
             PhoneNumber = request.PhoneNumber?.Trim(),
+            DateOfBirth = request.DateOfBirth?.Date,
             CreatedAt = DateTime.UtcNow,
             IsActive = true
         };
@@ -79,8 +122,12 @@ public class AuthController : ControllerBase
     // END: REGISTER
 
     // START: LOGIN
+    /// <summary>Authenticates a user and returns a JWT containing the user ID and role.</summary>
+    /// <remarks>Body: email and password. Returns 200 with the token, or 401 for invalid credentials.</remarks>
     [AllowAnonymous]
     [HttpPost("login")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login(LoginRequest request)
     {
         var email = request.Email.Trim().ToLowerInvariant();
@@ -163,10 +210,38 @@ public class AuthController : ControllerBase
                 user.FirstName,
                 user.LastName,
                 user.Email,
-                user.Role
+                user.Role,
+                user.ProfilePictureUrl
             }
         });
     }
     // END: LOGIN
+
+    // START: LOGOUT
+    /// <summary>Ends the authenticated session.</summary>
+    /// <remarks>
+    /// JWTs are stateless, so the client ends the session by discarding the token
+    /// (the MVC application also clears its server-side session).
+    /// Returns 200, or 401 when no valid token is supplied.
+    /// </remarks>
+    [Authorize]
+    [HttpPost("logout")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public IActionResult Logout()
+    {
+        return Ok(new
+        {
+            message = "Signed out successfully. Discard the token on the client."
+        });
+    }
+    // END: LOGOUT
+
+    private static bool CodesMatch(string expected, string supplied)
+    {
+        return CryptographicOperations.FixedTimeEquals(
+            Encoding.UTF8.GetBytes(expected),
+            Encoding.UTF8.GetBytes(supplied));
+    }
 }
 // END: AUTHENTICATION CONTROLLER

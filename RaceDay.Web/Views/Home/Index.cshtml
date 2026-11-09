@@ -1,0 +1,84 @@
+@model HomeViewModel
+@inject UserSession Me
+@{
+    ViewData["Title"] = "Run. Walk. Ride.";
+}
+
+<section class="rd-hero rounded-4 mb-5">
+    <div class="px-4 px-md-5 py-5">
+        <div class="row align-items-center">
+            <div class="col-lg-8 py-lg-4">
+                <div class="rd-eyebrow text-white-50 mb-2">Race day starts here</div>
+                <h1>Find your next <span class="accent">finish line</span></h1>
+                <p class="lead my-3">Browse running, walking and cycling events, pick your category, enrol in a minute and watch your results land on your own page.</p>
+                <div class="d-flex flex-wrap gap-2 mt-4">
+                    <a class="btn btn-accent btn-lg" asp-controller="Events" asp-action="Index"><i class="bi bi-search me-1"></i> Browse events</a>
+                    @if (!Me.IsAuthenticated)
+                    {
+                        <a class="btn btn-outline-light btn-lg" asp-controller="Account" asp-action="Register">Create a free account</a>
+                    }
+                    else
+                    {
+                        <a class="btn btn-outline-light btn-lg" asp-controller="Participant" asp-action="MyEnrolments">My enrolments</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="mb-5">
+    <div class="d-flex justify-content-between align-items-end mb-3">
+        <div>
+            <div class="rd-eyebrow">Coming up</div>
+            <h2 class="mb-0">Upcoming events</h2>
+        </div>
+        <a class="link-dark fw-semibold" asp-controller="Events" asp-action="Index">See all <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Error))
+    {
+        <div class="alert alert-warning"><i class="bi bi-wifi-off me-2"></i>@Model.Error</div>
+    }
+    else if (Model.FeaturedEvents.Count == 0)
+    {
+        <div class="rd-card rd-empty"><i class="bi bi-calendar-x"></i>No upcoming events yet. Check back soon!</div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var item in Model.FeaturedEvents)
+            {
+                <div class="col-md-6 col-lg-4"><partial name="_EventCard" model="item" /></div>
+            }
+        </div>
+    }
+</section>
+
+<section class="row g-4 mb-3">
+    <div class="col-md-4">
+        <div class="rd-card rd-card-body h-100">
+            <div class="fs-2" style="color:var(--rd-orange)"><i class="bi bi-ticket-perforated"></i></div>
+            <h3>Enrol in minutes</h3>
+            <p class="text-muted mb-0">Choose an event, pick the category that fits your age and level, and you are on the start list.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="rd-card rd-card-body h-100">
+            <div class="fs-2" style="color:var(--rd-orange)"><i class="bi bi-stopwatch"></i></div>
+            <h3>Track your results</h3>
+            <p class="text-muted mb-0">See your finish time and your place, like "47th out of 312 finishers", on your personal results page.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="rd-card rd-card-body h-100">
+            <div class="fs-2" style="color:var(--rd-orange)"><i class="bi bi-clipboard-data"></i></div>
+            <h3>Organising an event?</h3>
+            <p class="text-muted">Create events, manage categories and enrolments, and publish results.</p>
+            @if (!Me.IsAuthenticated)
+            {
+                <a class="btn btn-outline-navy btn-sm" asp-controller="Account" asp-action="Register" asp-route-role="Organiser">Register as organiser</a>
+            }
+        </div>
+    </div>
+</section>

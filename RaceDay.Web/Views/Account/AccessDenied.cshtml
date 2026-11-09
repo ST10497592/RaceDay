@@ -1,0 +1,32 @@
+@inject UserSession Me
+@{
+    ViewData["Title"] = "Access denied";
+}
+<div class="text-center py-5">
+    <div class="rd-error-code">403</div>
+    <h1 class="mb-3">This area is not for your account</h1>
+    <p class="text-muted mx-auto" style="max-width:34rem">
+        @if (Me.IsOrganiser)
+        {
+            <text>That page is for participants. Organisers manage events from the organiser console.</text>
+        }
+        else if (Me.IsParticipant)
+        {
+            <text>That page is for event organisers. Participants can browse events, enrol and view their results.</text>
+        }
+        else
+        {
+            <text>Please sign in with the right account to continue.</text>
+        }
+    </p>
+    <div class="mt-4">
+        @if (Me.IsOrganiser)
+        {
+            <a class="btn btn-accent" asp-controller="Organiser" asp-action="Dashboard">Go to my dashboard</a>
+        }
+        else
+        {
+            <a class="btn btn-accent" asp-controller="Home" asp-action="Index">Back to home</a>
+        }
+    </div>
+</div>

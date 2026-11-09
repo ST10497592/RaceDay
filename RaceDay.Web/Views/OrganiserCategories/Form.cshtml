@@ -1,0 +1,45 @@
+@model CategoryFormViewModel
+@{
+    ViewData["Title"] = Model.IsEdit ? "Edit category" : "New category";
+}
+<div class="rd-page-header">
+    <div>
+        <div class="rd-eyebrow">Organiser console</div>
+        <h1>@(Model.IsEdit ? "Edit category" : "New category")</h1>
+    </div>
+    <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+</div>
+
+<div class="rd-card rd-card-body" style="max-width:640px">
+    <form asp-action="@(Model.IsEdit ? "Edit" : "Create")" asp-route-id="@(Model.IsEdit ? Model.CategoryId : (int?)null)" method="post" novalidate data-once>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        <div class="mb-3">
+            <label asp-for="CategoryName" class="form-label"></label>
+            <input asp-for="CategoryName" class="form-control" />
+            <span asp-validation-for="CategoryName" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label"></label>
+            <textarea asp-for="Description" class="form-control" rows="3" maxlength="250"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="MinimumAge" class="form-label"></label>
+                <input asp-for="MinimumAge" type="number" min="0" max="120" class="form-control" />
+                <span asp-validation-for="MinimumAge" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="MaximumAge" class="form-label"></label>
+                <input asp-for="MaximumAge" type="number" min="0" max="120" class="form-control" />
+                <span asp-validation-for="MaximumAge" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-text mb-3">Leave the ages empty for a category open to everyone.</div>
+        <button type="submit" class="btn btn-accent">@(Model.IsEdit ? "Save changes" : "Create category")</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,63 @@
+@model EventEnrolmentsViewModel
+@{
+    ViewData["Title"] = "Enrolments";
+    var statuses = new[] { "Pending", "Confirmed", "Cancelled", "Completed" };
+    var payments = new[] { "Pending", "Paid", "Failed", "Refunded" };
+}
+<div class="rd-page-header">
+    <div>
+        <div class="rd-eyebrow">@Model.Event.EventName</div>
+        <h1>Enrolments</h1>
+    </div>
+    <a class="btn btn-outline-secondary" asp-action="Index"><i class="bi bi-arrow-left me-1"></i> All events</a>
+</div>
+
+<div class="mb-3 d-flex flex-wrap gap-2">
+    <a class="btn btn-sm @(Model.StatusFilter == "" ? "btn-navy" : "btn-outline-navy")" asp-action="Manage" asp-route-id="@Model.Event.EventId">All</a>
+    @foreach (var s in statuses)
+    {
+        <a class="btn btn-sm @(Model.StatusFilter == s ? "btn-navy" : "btn-outline-navy")" asp-action="Manage" asp-route-id="@Model.Event.EventId" asp-route-status="@s">@s</a>
+    }
+</div>
+
+@if (Model.Enrolments.Count == 0)
+{
+    <div class="rd-card rd-empty"><i class="bi bi-people"></i>No enrolments to show.</div>
+}
+else
+{
+    <div class="rd-card table-responsive">
+        <table class="table rd-table">
+            <thead><tr><th>Participant</th><th>Category</th><th>Enrolled</th><th>Status</th><th>Payment</th><th class="text-end">Update</th></tr></thead>
+            <tbody>
+            @foreach (var e in Model.Enrolments)
+            {
+                <tr>
+                    <td>
+                        <div class="fw-semibold">@e.ParticipantName</div>
+                        <div class="small text-muted">@e.ParticipantEmail</div>
+                    </td>
+                    <td>@e.CategoryName</td>
+                    <td>@FormatHelper.ShortDate(e.EnrolmentDate)</td>
+                    <td><partial name="_StatusBadge" model="e.Status" /></td>
+                    <td><partial name="_StatusBadge" model="e.PaymentStatus" /></td>
+                    <td class="text-end">
+                        <form asp-action="UpdateStatus" asp-route-id="@e.EnrolmentId" method="post" class="d-flex gap-1 justify-content-end flex-wrap">
+                            <input type="hidden" name="eventId" value="@Model.Event.EventId" />
+                            <label class="visually-hidden" for="status-@e.EnrolmentId">Enrolment status</label>
+                            <select id="status-@e.EnrolmentId" name="status" class="form-select form-select-sm" style="width:auto">
+                                @foreach (var s in statuses) { <option value="@s" selected="@(s == e.Status)">@s</option> }
+                            </select>
+                            <label class="visually-hidden" for="pay-@e.EnrolmentId">Payment status</label>
+                            <select id="pay-@e.EnrolmentId" name="paymentStatus" class="form-select form-select-sm" style="width:auto">
+                                @foreach (var p in payments) { <option value="@p" selected="@(p == e.PaymentStatus)">@p</option> }
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-accent">Save</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

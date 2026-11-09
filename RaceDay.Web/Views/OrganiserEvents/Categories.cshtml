@@ -1,0 +1,57 @@
+@model ManageEventCategoriesViewModel
+@{
+    ViewData["Title"] = "Event categories";
+}
+<div class="rd-page-header">
+    <div>
+        <div class="rd-eyebrow">@Model.Event.EventName</div>
+        <h1>Event categories</h1>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-navy" asp-controller="OrganiserCategories" asp-action="Create"><i class="bi bi-plus-lg me-1"></i> New category</a>
+        <a class="btn btn-navy" asp-action="Index">Done</a>
+    </div>
+</div>
+
+<p class="text-muted">Choose which categories runners can enter for this event. Participants only see the categories you add here.</p>
+
+@if (Model.AllCategories.Count == 0)
+{
+    <div class="rd-card rd-empty"><i class="bi bi-tags"></i>No categories exist yet. Create one first.</div>
+}
+else
+{
+    <div class="rd-card table-responsive">
+        <table class="table rd-table">
+            <thead><tr><th>Category</th><th>Ages</th><th>Description</th><th class="text-end">Entered in this event</th></tr></thead>
+            <tbody>
+            @foreach (var c in Model.AllCategories)
+            {
+                var assigned = Model.AssignedIds.Contains(c.CategoryId);
+                <tr>
+                    <td class="fw-semibold">@c.CategoryName</td>
+                    <td>@c.AgeRangeText</td>
+                    <td class="text-muted">@c.Description</td>
+                    <td class="text-end">
+                        @if (assigned)
+                        {
+                            <form asp-action="RemoveCategory" asp-route-id="@Model.Event.EventId" method="post" class="d-inline">
+                                <input type="hidden" name="categoryId" value="@c.CategoryId" />
+                                <span class="rd-badge rd-badge-green me-2"><i class="bi bi-check-lg"></i> Added</span>
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-action="AddCategory" asp-route-id="@Model.Event.EventId" method="post" class="d-inline">
+                                <input type="hidden" name="categoryId" value="@c.CategoryId" />
+                                <button type="submit" class="btn btn-sm btn-accent">Add</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

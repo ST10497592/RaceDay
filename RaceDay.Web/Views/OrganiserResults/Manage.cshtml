@@ -1,0 +1,69 @@
+@model EventResultsViewModel
+@{
+    ViewData["Title"] = "Results";
+}
+<div class="rd-page-header">
+    <div>
+        <div class="rd-eyebrow">@Model.Event.EventName</div>
+        <h1>Results</h1>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" asp-action="Index"><i class="bi bi-arrow-left me-1"></i> All events</a>
+        <a class="btn btn-accent" asp-action="Add" asp-route-id="@Model.Event.EventId"><i class="bi bi-plus-lg me-1"></i> Record result</a>
+    </div>
+</div>
+
+<div class="rd-card mb-4">
+    @if (Model.Results.Count == 0)
+    {
+        <div class="rd-empty"><i class="bi bi-trophy"></i>No results recorded yet.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table rd-table">
+                <thead><tr><th>Position</th><th>Participant</th><th>Category</th><th>Finish time</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+                <tbody>
+                @foreach (var r in Model.Results)
+                {
+                    var medal = r.Position == 1 ? "gold" : r.Position == 2 ? "silver" : r.Position == 3 ? "bronze" : "";
+                    <tr>
+                        <td>@if (r.Position.HasValue) { <span class="rd-position @medal">@r.Position</span> } else { <span class="text-muted">-</span> }</td>
+                        <td class="fw-semibold">@r.ParticipantName</td>
+                        <td>@r.CategoryName</td>
+                        <td class="rd-time">@FormatHelper.FinishTime(r.FinishTime)</td>
+                        <td><partial name="_StatusBadge" model="r.ResultStatus" /></td>
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-sm btn-outline-navy" asp-action="Edit" asp-route-id="@r.ResultId" asp-route-eventId="@Model.Event.EventId"><i class="bi bi-pencil"></i></a>
+                            <form asp-action="Delete" asp-route-id="@r.ResultId" asp-route-eventId="@Model.Event.EventId" method="post" class="d-inline" data-confirm="Delete the result for @r.ParticipantName?">
+                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@if (Model.WithoutResult.Count > 0)
+{
+    <div class="rd-section-title">Waiting for a result</div>
+    <div class="rd-card table-responsive">
+        <table class="table rd-table">
+            <thead><tr><th>Participant</th><th>Category</th><th>Enrolment</th><th class="text-end"></th></tr></thead>
+            <tbody>
+            @foreach (var e in Model.WithoutResult)
+            {
+                <tr>
+                    <td class="fw-semibold">@e.ParticipantName</td>
+                    <td>@e.CategoryName</td>
+                    <td><partial name="_StatusBadge" model="e.Status" /></td>
+                    <td class="text-end"><a class="btn btn-sm btn-accent" asp-action="Add" asp-route-id="@Model.Event.EventId" asp-route-enrolmentId="@e.EnrolmentId">Record</a></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

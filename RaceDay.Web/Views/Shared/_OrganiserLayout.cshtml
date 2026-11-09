@@ -1,0 +1,52 @@
+@inject UserSession Me
+@{
+    var controller = (ViewContext.RouteData.Values["controller"] ?? string.Empty).ToString() ?? string.Empty;
+    string Active(string c)
+    {
+        return string.Equals(controller, c, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+    }
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <partial name="_Head" />
+    <title>@ViewData["Title"] - RaceDay Organiser</title>
+</head>
+<body>
+    <a class="visually-hidden-focusable position-absolute p-2 bg-white" href="#main-content">Skip to content</a>
+    <div class="rd-shell">
+        <aside class="rd-sidebar" aria-label="Organiser navigation">
+            <partial name="_OrganiserNav" model="true" />
+        </aside>
+
+        <div class="rd-main">
+            <div class="rd-topbar">
+                <a class="text-white text-decoration-none rd-display fs-3" asp-controller="Organiser" asp-action="Dashboard"><i class="bi bi-lightning-charge-fill" style="color:var(--rd-orange)"></i> RaceDay</a>
+                <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#orgMenu" aria-controls="orgMenu">
+                    <i class="bi bi-list"></i> Menu
+                </button>
+            </div>
+
+            <div class="offcanvas offcanvas-start rd-offcanvas" tabindex="-1" id="orgMenu" aria-labelledby="orgMenuLabel">
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title rd-display fs-3" id="orgMenuLabel">RaceDay</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body d-flex flex-column">
+                    <partial name="_OrganiserNav" model="false" />
+                </div>
+            </div>
+
+            <main id="main-content" class="rd-content">
+                <partial name="_Flash" />
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

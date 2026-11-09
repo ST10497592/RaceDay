@@ -1,0 +1,36 @@
+@model List<EventSummaryDto>
+@{
+    ViewData["Title"] = "Results";
+}
+<div class="rd-page-header">
+    <div>
+        <div class="rd-eyebrow">Organiser console</div>
+        <h1>Results</h1>
+    </div>
+</div>
+<p class="text-muted">Choose an event to record or edit its results.</p>
+
+@if (Model.Count == 0)
+{
+    <div class="rd-card rd-empty"><i class="bi bi-trophy"></i>You have no events yet.</div>
+}
+else
+{
+    <div class="rd-card table-responsive">
+        <table class="table rd-table">
+            <thead><tr><th>Event</th><th>Date</th><th>Status</th><th>Enrolled</th><th class="text-end"></th></tr></thead>
+            <tbody>
+            @foreach (var e in Model)
+            {
+                <tr>
+                    <td class="fw-semibold">@e.EventName</td>
+                    <td>@FormatHelper.ShortDate(e.EventDate)</td>
+                    <td><partial name="_StatusBadge" model="e.Status" /></td>
+                    <td>@e.EnrolmentCount</td>
+                    <td class="text-end"><a class="btn btn-sm btn-navy" asp-action="Manage" asp-route-id="@e.EventId">Open results</a></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

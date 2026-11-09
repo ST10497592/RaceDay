@@ -3,7 +3,7 @@
 namespace RaceDay.DTOs;
 
 // START: REGISTRATION REQUEST
-// Purpose: Validates the data required to register a new participant.
+// Purpose: Validates the data required to register a new Participant or Organiser.
 public class RegisterRequest
 {
     [Required(ErrorMessage = "First name is required.")]
@@ -31,5 +31,19 @@ public class RegisterRequest
     [MaxLength(30, ErrorMessage = "Phone number cannot exceed 30 characters.")]
     [RegularExpression(@"^\+?[0-9\s().-]*$", ErrorMessage = "The phone number contains invalid characters.")]
     public string? PhoneNumber { get; set; }
+
+    public DateTime? DateOfBirth { get; set; }
+
+    /// <summary>The role the user is registering as: Participant (default) or Organiser.</summary>
+    [RegularExpression("^(Participant|Organiser)$",
+        ErrorMessage = "Role must be Participant or Organiser.")]
+    public string Role { get; set; } = "Participant";
+
+    /// <summary>
+    /// Organiser accounts are protected: the caller must supply the organiser
+    /// access code configured on the server (Registration:OrganiserCode).
+    /// </summary>
+    [MaxLength(100, ErrorMessage = "The organiser access code cannot exceed 100 characters.")]
+    public string? OrganiserCode { get; set; }
 }
 // END: REGISTRATION REQUEST

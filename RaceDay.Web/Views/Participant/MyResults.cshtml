@@ -1,0 +1,52 @@
+@model MyResultsViewModel
+@{
+    ViewData["Title"] = "My results";
+}
+<div class="rd-page-header">
+    <div>
+        <div class="rd-eyebrow">Participant</div>
+        <h1>My results</h1>
+    </div>
+</div>
+
+@if (Model.Results.Count == 0)
+{
+    <div class="rd-card rd-empty">
+        <i class="bi bi-trophy"></i>
+        No results yet. Once an organiser records your finish, it will appear here.
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var r in Model.Results)
+        {
+            var medal = r.Position == 1 ? "gold" : r.Position == 2 ? "silver" : r.Position == 3 ? "bronze" : "";
+            <div class="col-md-6 col-xl-4">
+                <div class="rd-card rd-card-body h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="rd-eyebrow">@FormatHelper.ShortDate(r.EventDate)</span>
+                        <partial name="_StatusBadge" model="r.ResultStatus" />
+                    </div>
+                    <h3 class="mb-1">@r.EventName</h3>
+                    <div class="text-muted mb-3">@r.CategoryName</div>
+
+                    @if (r.ResultStatus == "Finished")
+                    {
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="rd-position @medal fs-4" style="width:3.4rem;height:3.4rem">@r.Position</span>
+                            <div>
+                                <div class="fw-semibold">@FormatHelper.PositionText(r.Position, r.TotalFinishers)</div>
+                                <div class="rd-time fs-5">@FormatHelper.FinishTime(r.FinishTime)</div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted">@FormatHelper.ResultStatusText(r.ResultStatus)</div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}

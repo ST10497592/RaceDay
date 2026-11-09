@@ -1,4 +1,5 @@
 
+using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -8,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using RaceDay.Data;
 using RaceDay.Models;
+using RaceDay.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,23 @@ builder.Services.AddEndpointsApiExplorer();
 // START: SWAGGER JWT CONFIGURATION
 builder.Services.AddSwaggerGen(options =>
 {
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "RaceDay API",
+        Version = "v1",
+        Description = "RESTful API for the RaceDay sports event management platform. " +
+                      "Register, log in, then press Authorize and paste the JWT to test protected endpoints."
+    });
+
+    // Descriptions (purpose, input and responses) come from the XML comments on the controllers.
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath);
+    }
+
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -58,6 +77,13 @@ builder.Services.AddDbContext<RaceDayDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 // END: DATABASE CONFIGURATION
+
+// START: AZURE BLOB STORAGE
+builder.Services.Configure<BlobStorageOptions>(
+    builder.Configuration.GetSection("AzureStorage"));
+
+builder.Services.AddSingleton<IBlobStorageService, BlobStorageService>();
+// END: AZURE BLOB STORAGE
 
 // START: PASSWORD HASHING
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
@@ -105,6 +131,15 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+// START: DATABASE INITIALISATION
+// Creates the database when it does not exist (Docker), adds the ProfilePictureUrl
+// column to databases created from the Part 1 script and optionally seeds demo data.
+if (builder.Configuration.GetValue("Database:InitializeOnStartup", true))
+{
+    await DatabaseInitializer.InitializeAsync(app.Services, builder.Configuration);
+}
+// END: DATABASE INITIALISATION
+
 // START: SWAGGER
 if (app.Environment.IsDevelopment())
 {
@@ -114,12 +149,22 @@ if (app.Environment.IsDevelopment())
 // END: SWAGGER
 
 // START: HTTP PIPELINE
-app.UseHttpsRedirection();
+// HTTPS redirection is switched off inside Docker, where TLS is not terminated by the API.
+if (builder.Configuration.GetValue("UseHttpsRedirection", true))
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapGet("/health", () => Microsoft.AspNetCore.Http.Results.Ok(new { status = "healthy" }))
+    .AllowAnonymous();
 // END: HTTP PIPELINE
 
 app.Run();
+
+// Makes the entry point visible to the integration tests (WebApplicationFactory).
+public partial class Program { }

@@ -1,0 +1,123 @@
+@model EventDetailsViewModel
+@{
+    var ev = Model.Event;
+    ViewData["Title"] = ev.EventName;
+    var canEnrol = Model.IsParticipant && ev.Status == "Open" && !Model.AlreadyEnrolled && ev.Categories.Count > 0;
+}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a asp-action="Index">Events</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@ev.EventName</li>
+    </ol>
+</nav>
+
+<img class="rd-event-hero mb-4"
+     src="@(string.IsNullOrWhiteSpace(ev.BannerUrl) ? Url.Content("~/images/event-placeholder.svg") : ev.BannerUrl)"
+     data-fallback="@Url.Content("~/images/event-placeholder.svg")" alt="Banner for @ev.EventName" />
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+            <span class="rd-eyebrow"><i class="bi @FormatHelper.EventTypeIcon(ev.EventType)"></i> @ev.EventType</span>
+            <partial name="_StatusBadge" model="ev.Status" />
+        </div>
+        <h1 class="mb-3">@ev.EventName</h1>
+        <p class="fs-5">@ev.Description</p>
+
+        <div class="rd-section-title mt-4">Categories</div>
+        @if (ev.Categories.Count == 0)
+        {
+            <p class="text-muted">The organiser has not added categories yet.</p>
+        }
+        else
+        {
+            <div class="row g-3 mb-4">
+                @foreach (var c in ev.Categories)
+                {
+                    <div class="col-sm-6">
+                        <div class="rd-card rd-card-body py-3">
+                            <strong>@c.CategoryName</strong>
+                            <div class="text-muted small">@c.AgeRangeText</div>
+                            @if (!string.IsNullOrWhiteSpace(c.Description))
+                            {
+                                <div class="small mt-1">@c.Description</div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (Model.Results.Count > 0)
+        {
+            <div class="rd-section-title mt-4">Results</div>
+            <div class="rd-card table-responsive mb-4">
+                <table class="table rd-table">
+                    <thead><tr><th>Position</th><th>Name</th><th>Category</th><th>Finish time</th></tr></thead>
+                    <tbody>
+                    @foreach (var r in Model.Results)
+                    {
+                        var medal = r.Position == 1 ? "gold" : r.Position == 2 ? "silver" : r.Position == 3 ? "bronze" : "";
+                        <tr>
+                            <td><span class="rd-position @medal">@r.Position</span></td>
+                            <td>@r.ParticipantName</td>
+                            <td>@r.CategoryName</td>
+                            <td class="rd-time">@FormatHelper.FinishTime(r.FinishTime)</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-4">
+        <div class="rd-card rd-card-body position-sticky" style="top:1rem">
+            <div class="rd-price fs-2 mb-3">@FormatHelper.Money(ev.EntryFee)</div>
+            <ul class="list-unstyled mb-4">
+                <li class="mb-2"><i class="bi bi-calendar-event text-warning me-2"></i>@FormatHelper.LongDate(ev.EventDate)</li>
+                <li class="mb-2"><i class="bi bi-clock text-warning me-2"></i>Starts at @FormatHelper.Time(ev.StartTime)</li>
+                <li class="mb-2"><i class="bi bi-geo-alt-fill text-warning me-2"></i>@ev.Location</li>
+                <li><i class="bi bi-people-fill text-warning me-2"></i>Up to @ev.MaxParticipants participants</li>
+            </ul>
+
+            @if (!Model.IsSignedIn)
+            {
+                <a class="btn btn-accent w-100 mb-2" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path">Sign in to enrol</a>
+                <div class="text-center small text-muted">No account? <a asp-controller="Account" asp-action="Register">Register</a></div>
+            }
+            else if (!Model.IsParticipant)
+            {
+                <div class="alert alert-info mb-0">Organiser accounts cannot enrol in events.</div>
+            }
+            else if (Model.AlreadyEnrolled)
+            {
+                <div class="alert alert-success"><i class="bi bi-check-circle-fill me-1"></i> You are enrolled in this event.</div>
+                <a class="btn btn-outline-navy w-100" asp-controller="Participant" asp-action="MyEnrolments">View my enrolments</a>
+            }
+            else if (ev.Status != "Open")
+            {
+                <div class="alert alert-secondary mb-0">Enrolment is not open for this event (status: @ev.Status).</div>
+            }
+            else if (!canEnrol)
+            {
+                <div class="alert alert-secondary mb-0">This event has no categories to enter yet.</div>
+            }
+            else
+            {
+                <form asp-action="Enrol" asp-route-id="@ev.EventId" method="post" data-once>
+                    <label for="categoryId" class="form-label">Choose your category</label>
+                    <select id="categoryId" name="categoryId" class="form-select mb-3" required>
+                        <option value="">Select a category...</option>
+                        @foreach (var c in ev.Categories)
+                        {
+                            <option value="@c.CategoryId">@c.CategoryName (@c.AgeRangeText)</option>
+                        }
+                    </select>
+                    <button type="submit" class="btn btn-accent w-100 btn-lg">Enrol now</button>
+                    <div class="form-text mt-2">Your enrolment stays pending until the organiser confirms it.</div>
+                </form>
+            }
+        </div>
+    </div>
+</div>

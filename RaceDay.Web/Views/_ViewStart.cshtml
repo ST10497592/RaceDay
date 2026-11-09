@@ -1,0 +1,5 @@
+@inject UserSession Me
+@{
+    // Organisers get the sidebar layout, everyone else the top-navigation layout.
+    Layout = Me.IsOrganiser ? "_OrganiserLayout" : "_Layout";
+}

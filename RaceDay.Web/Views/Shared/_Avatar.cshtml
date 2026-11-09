@@ -1,0 +1,3 @@
+@model string
+<img class="rd-avatar" src="@(string.IsNullOrWhiteSpace(Model) ? Url.Content("~/images/avatar-placeholder.svg") : Model)"
+     data-fallback="@Url.Content("~/images/avatar-placeholder.svg")" alt="Profile picture" width="36" height="36" />

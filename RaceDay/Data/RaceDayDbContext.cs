@@ -56,6 +56,20 @@ public class RaceDayDbContext : DbContext
                     j.ToTable("EventCategories");
                 });
 
+        // START: UNIQUE CONSTRAINTS (match the Part 1 SQL script)
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Email)
+            .IsUnique();
+
+        modelBuilder.Entity<Category>()
+            .HasIndex(c => c.CategoryName)
+            .IsUnique();
+
+        modelBuilder.Entity<Enrolment>()
+            .HasIndex(e => new { e.ParticipantId, e.EventId })
+            .IsUnique();
+        // END: UNIQUE CONSTRAINTS
+
         // START: RESULT CONSTRAINTS
         modelBuilder.Entity<Result>()
             .HasIndex(r => r.EnrolmentId)
